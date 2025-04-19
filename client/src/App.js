@@ -79,7 +79,8 @@ function Dashboard({ store, onLogout }) {
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams(searchParams);
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/temperatures?${queryParams}`, {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/temperatures?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
