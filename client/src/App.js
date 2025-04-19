@@ -47,7 +47,10 @@ function Dashboard({ store, onLogout }) {
     
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/temperatures', {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('API URL:', `${baseUrl}/api/temperatures`);
+      
+      const response = await fetch(`${baseUrl}/api/temperatures`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,22 +59,23 @@ function Dashboard({ store, onLogout }) {
         body: JSON.stringify(formData),
       });
       
-      if (response.ok) {
-        setFormData(prev => ({
-          ...prev,
-          machineId: '',
-          temperature: '',
-          hopper: 'A'
-        }));
-        setSuccess('Temperature recorded successfully!');
-        fetchTemperatures();
-      } else {
-        const data = await response.json();
-        setError(data.message || 'Failed to record temperature');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to record temperature');
       }
+      
+      setFormData(prev => ({
+        ...prev,
+        machineId: '',
+        temperature: '',
+        hopper: 'A'
+      }));
+      setSuccess('Temperature recorded successfully!');
+      fetchTemperatures();
     } catch (error) {
       console.error('Error submitting temperature:', error);
-      setError('Failed to connect to server. Please try again.');
+      setError('Failed to connect to server: ' + error.message);
     }
   };
 
@@ -80,19 +84,26 @@ function Dashboard({ store, onLogout }) {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams(searchParams);
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('API URL:', `${baseUrl}/api/temperatures?${queryParams}`);
+      
       const response = await fetch(`${baseUrl}/api/temperatures?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+      
       if (!response.ok) {
-        throw new Error('Failed to fetch temperatures');
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'Failed to fetch temperatures');
       }
+      
       const data = await response.json();
       setTemperatures(data);
     } catch (error) {
       console.error('Error fetching temperatures:', error);
-      setError('Failed to fetch temperature records');
+      setError('Failed to fetch temperature records: ' + error.message);
     }
   }, [searchParams]);
 
