@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
@@ -75,11 +75,11 @@ function Dashboard({ store, onLogout }) {
     }
   };
 
-  const fetchTemperatures = async () => {
+  const fetchTemperatures = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams(searchParams);
-      const response = await fetch(`http://localhost:5000/api/temperatures?${queryParams}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/temperatures?${queryParams}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -93,11 +93,11 @@ function Dashboard({ store, onLogout }) {
       console.error('Error fetching temperatures:', error);
       setError('Failed to fetch temperature records');
     }
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     fetchTemperatures();
-  }, [searchParams]);
+  }, [fetchTemperatures]);
 
   const downloadExcel = () => {
     const excelData = temperatures.map(record => ({
