@@ -8,6 +8,7 @@ function Login({ onLogin }) {
     password: ''
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,31 +22,40 @@ function Login({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
     try {
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      console.log('Login API URL:', `${baseUrl}/api/stores/login`);
-      
-      const response = await fetch(`${baseUrl}/api/stores/login`, {
+      const apiUrl = `${baseUrl}/api/stores/login`;
+      console.log('Attempting login to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(formData),
       });
 
+      console.log('Login response status:', response.status);
       const data = await response.json();
-      
+      console.log('Login response data:', data);
+
       if (response.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('store', JSON.stringify(data.store));
         onLogin(data.store);
         navigate('/dashboard');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Login failed. Please check your credentials.');
       }
     } catch (error) {
-      console.error('Login error:', error);
-      setError('Failed to connect to server: ' + error.message);
+      console.error('Login error details:', error);
+      setError(`Failed to connect to server. Please try again later. (${error.message})`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -63,6 +73,7 @@ function Login({ onLogin }) {
               value={formData.username}
               onChange={handleChange}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="form-group">
@@ -73,9 +84,12 @@ function Login({ onLogin }) {
               value={formData.password}
               onChange={handleChange}
               required
+              disabled={isLoading}
             />
           </div>
-          <button type="submit">Login</button>
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </button>
         </form>
       </div>
     </div>
