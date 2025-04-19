@@ -22,7 +22,10 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/stores/login', {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      console.log('Login API URL:', `${baseUrl}/api/stores/login`);
+      
+      const response = await fetch(`${baseUrl}/api/stores/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,7 +44,8 @@ function Login({ onLogin }) {
         setError(data.message || 'Login failed');
       }
     } catch (error) {
-      setError('Failed to connect to server');
+      console.error('Login error:', error);
+      setError('Failed to connect to server: ' + error.message);
     }
   };
 
