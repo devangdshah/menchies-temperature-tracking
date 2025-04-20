@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
-import Tips from './components/Tips';
+import TipTracker from './components/Tips';
 import OutOfStock from './components/OutOfStock';
 import './App.css';
 
@@ -162,6 +162,17 @@ function TemperatureTracker() {
       setError('Failed to fetch temperature records: ' + error.message);
     }
   }, [searchParams]);
+
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      await fetchTemperatures();
+    } catch (error) {
+      setError('Failed to search temperature records: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchTemperatures();
@@ -345,54 +356,6 @@ function TemperatureTracker() {
   );
 }
 
-function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    
-    // This is a placeholder for the login logic.
-    // In a real application, you would send the username and password to the server
-    // and handle the response.
-    console.log('Login attempt:', { username, password });
-  };
-
-  return (
-    <div className="login-container">
-      <h1 className="login-title">Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label className="form-label">Username</label>
-          <input
-            type="text"
-            className="form-input"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Password</label>
-          <input
-            type="password"
-            className="form-input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        {error && <div className="error-message">{error}</div>}
-        <button type="submit" className="submit-button">
-          Login
-        </button>
-      </form>
-    </div>
-  );
-}
-
 function App() {
   const [store, setStore] = useState(null);
 
@@ -405,6 +368,7 @@ function App() {
 
   const handleLogin = (storeData) => {
     setStore(storeData);
+    localStorage.setItem('store', JSON.stringify(storeData));
   };
 
   const handleLogout = () => {
@@ -424,7 +388,7 @@ function App() {
               store ? (
                 <Navigate to="/dashboard/temperatures" replace />
               ) : (
-                <Login />
+                <Login onLogin={handleLogin} />
               )
             }
           />
@@ -442,7 +406,7 @@ function App() {
             path="/dashboard/tips"
             element={
               store ? (
-                <Tips store={store} onLogout={handleLogout} />
+                <TipTracker />
               ) : (
                 <Navigate to="/" replace />
               )
