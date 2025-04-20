@@ -158,7 +158,6 @@ function Dashboard({ store, onLogout }) {
 
   return (
     <div className="App">
-      <Navigation store={store} onLogout={onLogout} />
       <main>
         <section className="input-section">
           <h2>Record New Temperature</h2>
