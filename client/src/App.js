@@ -6,42 +6,47 @@ import TipTracker from './components/Tips';
 import OutOfStock from './components/OutOfStock';
 import './App.css';
 
-function Navigation({ onLogout }) {
+const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    onLogout();
-    navigate('/');
+    localStorage.removeItem('token');
+    localStorage.removeItem('store');
+    navigate('/login');
   };
 
   return (
     <nav className="main-nav">
-      <div className="nav-container">
-        <Link to="/dashboard/temperatures" className="store-name">
-          Menchie's Temperature Tracking
-        </Link>
-        <div className="nav-links">
-          <Link
-            to="/dashboard/temperatures"
-            className={`nav-link ${location.pathname.includes('temperatures') ? 'active' : ''}`}
-          >
-            Temperatures
-          </Link>
-          <Link
-            to="/dashboard/tips"
-            className={`nav-link ${location.pathname.includes('tips') ? 'active' : ''}`}
-          >
-            Tips
-          </Link>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
-        </div>
+      <div className="nav-brand">
+        <span className="store-name">
+          {JSON.parse(localStorage.getItem('store'))?.name || 'Store'}
+        </span>
       </div>
+      <div className="nav-links">
+        <Link 
+          to="/dashboard/temperatures" 
+          className={location.pathname === '/dashboard/temperatures' ? 'active' : ''}
+        >
+          Temperatures
+        </Link>
+        <Link 
+          to="/dashboard/tips" 
+          className={location.pathname === '/dashboard/tips' ? 'active' : ''}
+        >
+          Tips
+        </Link>
+        <Link 
+          to="/dashboard/out-of-stock" 
+          className={location.pathname === '/dashboard/out-of-stock' ? 'active' : ''}
+        >
+          Out of Stock
+        </Link>
+      </div>
+      <button onClick={handleLogout} className="logout-btn">Logout</button>
     </nav>
   );
-}
+};
 
 function Dashboard() {
   const location = useLocation();
@@ -381,48 +386,16 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {store && <Navigation onLogout={handleLogout} />}
+        {store && <Navigation />}
         <Routes>
-          <Route
-            path="/"
-            element={
-              store ? (
-                <Navigate to="/dashboard/temperatures" replace />
-              ) : (
-                <Login onLogin={handleLogin} />
-              )
-            }
-          />
-          <Route
-            path="/dashboard/temperatures"
-            element={
-              store ? (
-                <TemperatureTracker />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/dashboard/tips"
-            element={
-              store ? (
-                <TipTracker />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
-          <Route
-            path="/dashboard/out-of-stock"
-            element={
-              store ? (
-                <OutOfStock store={store} onLogout={handleLogout} />
-              ) : (
-                <Navigate to="/" replace />
-              )
-            }
-          />
+          <Route path="/login" element={<Login onLogin={handleLogin} />} />
+          <Route path="/dashboard" element={<Dashboard />}>
+            <Route path="temperatures" element={<TemperatureTracker />} />
+            <Route path="tips" element={<TipTracker />} />
+            <Route path="out-of-stock" element={<OutOfStock />} />
+            <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
+          </Route>
+          <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
     </Router>
