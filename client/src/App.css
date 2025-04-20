@@ -134,7 +134,7 @@ body {
 }
 
 .submit-button {
-  background-color: var(--secondary-color);
+  background-color: #4CAF50;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -146,7 +146,7 @@ body {
 }
 
 .submit-button:hover {
-  background-color: #2980b9;
+  background-color: #45a049;
 }
 
 /* Search Section */
