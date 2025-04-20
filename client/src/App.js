@@ -81,15 +81,13 @@ function TemperatureTracker() {
     setSuccess('');
     
     try {
-      const token = localStorage.getItem('token');
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       console.log('API URL:', `${baseUrl}/api/temperatures`);
       
       const response = await fetch(`${baseUrl}/api/temperatures`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData),
       });
@@ -116,14 +114,12 @@ function TemperatureTracker() {
 
   const fetchTemperatures = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
       const queryParams = new URLSearchParams(searchParams);
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       console.log('API URL:', `${baseUrl}/api/temperatures?${queryParams}`);
       
       const response = await fetch(`${baseUrl}/api/temperatures?${queryParams}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
       });
