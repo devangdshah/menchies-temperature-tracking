@@ -100,7 +100,9 @@ const outOfStockSchema = new mongoose.Schema({
   date: { type: Date, default: Date.now },
   itemName: { type: String, required: true },
   quantity: { type: Number, required: true },
-  notes: { type: String }
+  notes: { type: String },
+  expectedRestockDate: { type: Date },
+  status: { type: String, enum: ['Out of Stock', 'Restocked'] }
 });
 
 const OutOfStock = mongoose.model('OutOfStock', outOfStockSchema);
@@ -256,12 +258,14 @@ app.get('/api/tips', authenticateToken, async (req, res) => {
 // Out of Stock routes
 app.post('/api/out-of-stock', authenticateToken, async (req, res) => {
   try {
-    const { itemName, quantity, notes } = req.body;
+    const { itemName, category, notes, expectedRestockDate } = req.body;
     const newItem = new OutOfStock({
       storeId: req.store.id,
       itemName,
-      quantity,
-      notes
+      category,
+      notes,
+      expectedRestockDate,
+      status: 'Out of Stock'
     });
     await newItem.save();
     res.status(201).json(newItem);
@@ -272,18 +276,27 @@ app.post('/api/out-of-stock', authenticateToken, async (req, res) => {
 
 app.get('/api/out-of-stock', authenticateToken, async (req, res) => {
   try {
-    const { startDate, endDate } = req.query;
-    let query = { storeId: req.store.id };
-    
-    if (startDate && endDate) {
-      query.date = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
-    }
-
-    const items = await OutOfStock.find(query).sort({ date: -1 });
+    const items = await OutOfStock.find({ 
+      storeId: req.store.id,
+      status: 'Out of Stock'
+    }).sort({ date: -1 });
     res.json(items);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+app.put('/api/out-of-stock/:id/restock', authenticateToken, async (req, res) => {
+  try {
+    const item = await OutOfStock.findOneAndUpdate(
+      { _id: req.params.id, storeId: req.store.id },
+      { status: 'Restocked', restockDate: new Date() },
+      { new: true }
+    );
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    res.json(item);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
