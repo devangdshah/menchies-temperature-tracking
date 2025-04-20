@@ -18,19 +18,29 @@ const OutOfStock = () => {
   const fetchOutOfStockItems = async () => {
     try {
       setLoading(true);
+      const token = localStorage.getItem('token');
+      console.log('Fetching out of stock items with token:', token);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/out-of-stock`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         }
       });
+      
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
+      
       if (response.ok) {
         setItems(data);
       } else {
         setError(data.message || 'Failed to fetch out-of-stock items');
       }
     } catch (err) {
-      setError('Failed to connect to server');
+      console.error('Error fetching out of stock items:', err);
+      setError('Failed to connect to server. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -50,16 +60,23 @@ const OutOfStock = () => {
     setSuccess('');
 
     try {
+      const token = localStorage.getItem('token');
+      console.log('Submitting new item with token:', token);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/out-of-stock`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         },
         body: JSON.stringify(formData)
       });
 
+      console.log('Submit response status:', response.status);
       const data = await response.json();
+      console.log('Submit response data:', data);
+
       if (response.ok) {
         setItems([...items, data]);
         setFormData({ name: '', comment: '' });
@@ -68,19 +85,26 @@ const OutOfStock = () => {
         setError(data.message || 'Failed to add item');
       }
     } catch (err) {
-      setError('Failed to connect to server');
+      console.error('Error submitting item:', err);
+      setError('Failed to connect to server. Please try again later.');
     }
   };
 
   const handleRemoveItem = async (id) => {
     try {
+      const token = localStorage.getItem('token');
+      console.log('Removing item with token:', token);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/out-of-stock/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
       });
 
+      console.log('Remove response status:', response.status);
+      
       if (response.ok) {
         setItems(items.filter(item => item._id !== id));
         setSuccess('Item removed successfully');
@@ -89,7 +113,8 @@ const OutOfStock = () => {
         setError(data.message || 'Failed to remove item');
       }
     } catch (err) {
-      setError('Failed to connect to server');
+      console.error('Error removing item:', err);
+      setError('Failed to connect to server. Please try again later.');
     }
   };
 
