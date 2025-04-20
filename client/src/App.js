@@ -6,13 +6,13 @@ import TipTracker from './components/Tips';
 import OutOfStock from './components/OutOfStock';
 import './App.css';
 
-function Navigation() {
+function Navigation({ onLogout }) {
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    onLogout();
+    navigate('/');
   };
 
   return (
@@ -361,7 +361,8 @@ function App() {
 
   useEffect(() => {
     const storedStore = localStorage.getItem('store');
-    if (storedStore) {
+    const token = localStorage.getItem('token');
+    if (storedStore && token) {
       setStore(JSON.parse(storedStore));
     }
   }, []);
@@ -380,7 +381,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {store && <Navigation />}
+        {store && <Navigation onLogout={handleLogout} />}
         <Routes>
           <Route
             path="/"

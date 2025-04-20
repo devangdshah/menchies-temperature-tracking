@@ -47,7 +47,7 @@ function Login({ onLogin }) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('store', JSON.stringify(data.store));
         onLogin(data.store);
-        navigate('/dashboard');
+        navigate('/dashboard/temperatures');
       } else {
         setError(data.message || 'Login failed. Please check your credentials.');
       }
