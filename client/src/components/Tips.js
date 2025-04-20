@@ -107,88 +107,88 @@ function Tips() {
   };
 
   return (
-    <div className="tips-section">
-      <h2>Cash Tips Tracking</h2>
-      
-      <section className="input-section">
-        <h3>Record New Tip</h3>
-        {error && <div className="error-message">{error}</div>}
-        {success && <div className="success-message">{success}</div>}
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label>Amount ($):</label>
-            <input
-              type="number"
-              name="amount"
-              value={formData.amount}
-              onChange={handleInputChange}
-              step="0.01"
-              required
-            />
-          </div>
-          <div>
-            <label>Notes:</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleInputChange}
-              rows="3"
-            />
-          </div>
-          <button type="submit">Submit</button>
-        </form>
-      </section>
+    <div className="App">
+      <main>
+        <section className="input-section">
+          <h2>Record New Tip</h2>
+          {error && <div className="error-message">{error}</div>}
+          {success && <div className="success-message">{success}</div>}
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label>Amount ($):</label>
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleInputChange}
+                step="0.01"
+                required
+              />
+            </div>
+            <div>
+              <label>Notes:</label>
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                rows="3"
+              />
+            </div>
+            <button type="submit">Submit</button>
+          </form>
+        </section>
 
-      <section className="search-section">
-        <h3>Search Tips</h3>
-        <div className="search-filters">
-          <div>
-            <label>Start Date:</label>
-            <input
-              type="date"
-              name="startDate"
-              value={searchParams.startDate}
-              onChange={handleSearchChange}
-            />
+        <section className="search-section">
+          <h2>Search Tips</h2>
+          <div className="search-filters">
+            <div>
+              <label>Start Date:</label>
+              <input
+                type="date"
+                name="startDate"
+                value={searchParams.startDate}
+                onChange={handleSearchChange}
+              />
+            </div>
+            <div>
+              <label>End Date:</label>
+              <input
+                type="date"
+                name="endDate"
+                value={searchParams.endDate}
+                onChange={handleSearchChange}
+              />
+            </div>
           </div>
-          <div>
-            <label>End Date:</label>
-            <input
-              type="date"
-              name="endDate"
-              value={searchParams.endDate}
-              onChange={handleSearchChange}
-            />
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="results-section">
-        <div className="results-header">
-          <h3>Tips Records</h3>
-          <button onClick={downloadExcel} className="download-button">
-            Download Excel
-          </button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount ($)</th>
-              <th>Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tips.map((record) => (
-              <tr key={record._id}>
-                <td>{new Date(record.date).toLocaleString()}</td>
-                <td>${record.amount.toFixed(2)}</td>
-                <td>{record.notes || '-'}</td>
+        <section className="results-section">
+          <div className="results-header">
+            <h2>Tips Records</h2>
+            <button onClick={downloadExcel} className="download-button">
+              Download Excel
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount ($)</th>
+                <th>Notes</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+            </thead>
+            <tbody>
+              {tips.map((record) => (
+                <tr key={record._id}>
+                  <td>{new Date(record.date).toLocaleString()}</td>
+                  <td>${record.amount.toFixed(2)}</td>
+                  <td>{record.notes || '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      </main>
     </div>
   );
 }

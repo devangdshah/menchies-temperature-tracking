@@ -105,6 +105,14 @@ textarea {
   border-radius: 0.375rem;
   font-size: 1rem;
   transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+  font-family: inherit;
 }
 
 input:focus,
