@@ -76,6 +76,16 @@ const temperatureSchema = new mongoose.Schema({
 
 const Temperature = mongoose.model('Temperature', temperatureSchema);
 
+// Tips Schema
+const tipSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+  date: { type: Date, default: Date.now },
+  amount: { type: Number, required: true },
+  notes: { type: String }
+});
+
+const Tip = mongoose.model('Tip', tipSchema);
+
 // Authentication middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -184,6 +194,41 @@ app.get('/api/temperatures', authenticateToken, async (req, res) => {
 
     const temperatures = await Temperature.find(query).sort({ date: -1 });
     res.json(temperatures);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Tips routes
+app.post('/api/tips', authenticateToken, async (req, res) => {
+  try {
+    const { amount, notes } = req.body;
+    const newTip = new Tip({
+      storeId: req.store.id,
+      amount,
+      notes
+    });
+    await newTip.save();
+    res.status(201).json(newTip);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+app.get('/api/tips', authenticateToken, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let query = { storeId: req.store.id };
+    
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const tips = await Tip.find(query).sort({ date: -1 });
+    res.json(tips);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

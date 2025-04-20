@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
+import Tips from './components/Tips';
 import './App.css';
 
 function Dashboard({ store, onLogout }) {
@@ -130,7 +131,7 @@ function Dashboard({ store, onLogout }) {
     <div className="App">
       <header className="App-header">
         <div className="header-content">
-          <h1>{store.name} - Temperature Tracker</h1>
+          <h1>{store.name} - Temperature & Tips Tracker</h1>
           <button onClick={onLogout} className="logout-button">Logout</button>
         </div>
       </header>
@@ -289,6 +290,8 @@ function Dashboard({ store, onLogout }) {
             </tbody>
           </table>
         </section>
+
+        <Tips />
       </main>
     </div>
   );
