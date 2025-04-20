@@ -340,38 +340,41 @@ function App() {
 
   return (
     <Router>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            store ? (
-              <Navigate to="/dashboard/temperatures" replace />
-            ) : (
-              <Login onLogin={handleLogin} />
-            )
-          }
-        />
-        <Route
-          path="/dashboard/temperatures"
-          element={
-            store ? (
-              <Dashboard store={store} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-        <Route
-          path="/dashboard/tips"
-          element={
-            store ? (
-              <Tips store={store} onLogout={handleLogout} />
-            ) : (
-              <Navigate to="/" replace />
-            )
-          }
-        />
-      </Routes>
+      <div className="App">
+        {store && <Navigation store={store} onLogout={handleLogout} />}
+        <Routes>
+          <Route
+            path="/"
+            element={
+              store ? (
+                <Navigate to="/dashboard/temperatures" replace />
+              ) : (
+                <Login onLogin={handleLogin} />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/temperatures"
+            element={
+              store ? (
+                <Dashboard store={store} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/tips"
+            element={
+              store ? (
+                <Tips store={store} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+        </Routes>
+      </div>
     </Router>
   );
 }
