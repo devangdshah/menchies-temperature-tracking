@@ -124,6 +124,12 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  font-size: 1rem;
+  min-width: 120px;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:hover {
@@ -132,6 +138,7 @@ button:hover {
 
 .logout-button {
   background-color: var(--error-color);
+  min-width: 100px;
 }
 
 .logout-button:hover {
@@ -140,6 +147,7 @@ button:hover {
 
 .download-button {
   background-color: var(--success-color);
+  min-width: 150px;
 }
 
 .download-button:hover {
