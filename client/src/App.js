@@ -6,7 +6,7 @@ import TipTracker from './components/Tips';
 import OutOfStock from './components/OutOfStock';
 import './App.css';
 
-const Navigation = () => {
+function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -46,7 +46,7 @@ const Navigation = () => {
       <button onClick={handleLogout} className="logout-btn">Logout</button>
     </nav>
   );
-};
+}
 
 function Dashboard() {
   const location = useLocation();
