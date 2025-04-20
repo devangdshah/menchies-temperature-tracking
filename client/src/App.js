@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { FiLogOut } from 'react-icons/fi';
 import Login from './components/Login';
 import TipTracker from './components/Tips';
 import './App.css';
@@ -36,7 +37,9 @@ function Navigation() {
           Tips
         </Link>
       </div>
-      <button onClick={handleLogout} className="logout-btn">Logout</button>
+      <button onClick={handleLogout} className="logout-btn" title="Logout">
+        <FiLogOut size={24} />
+      </button>
     </nav>
   );
 }
