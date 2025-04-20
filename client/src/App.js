@@ -33,6 +33,9 @@ function Navigation() {
         >
           Tips
         </Link>
+        <button onClick={handleLogout} className="logout-button" title="Logout">
+          <FiLogOut size={24} />
+        </button>
       </div>
     </nav>
   );
