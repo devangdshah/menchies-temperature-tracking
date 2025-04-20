@@ -1,47 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import * as XLSX from 'xlsx';
-import { FiLogOut } from 'react-icons/fi';
-import TipTracker from './components/Tips';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
-function Navigation() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate('/');
-  };
-
-  return (
-    <nav className="main-nav">
-      <div className="nav-brand">
-        <span className="store-name">
-          Welcome to Menchie's Temperature Tracking
-        </span>
-      </div>
-      <div className="nav-links">
-        <Link 
-          to="/temperatures" 
-          className={location.pathname === '/temperatures' ? 'active' : ''}
-        >
-          Temperatures
-        </Link>
-        <Link 
-          to="/tips" 
-          className={location.pathname === '/tips' ? 'active' : ''}
-        >
-          Tips
-        </Link>
-        <button onClick={handleLogout} className="logout-button" title="Logout">
-          <FiLogOut size={24} />
-        </button>
-      </div>
-    </nav>
-  );
-}
-
-function TemperatureTracker() {
+function App() {
   const [temperatures, setTemperatures] = useState([]);
   const [formData, setFormData] = useState({
     equipmentType: 'Ice Cream Machine',
@@ -58,7 +18,6 @@ function TemperatureTracker() {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,8 +25,6 @@ function TemperatureTracker() {
       ...prev,
       [name]: value
     }));
-    setError('');
-    setSuccess('');
   };
 
   const handleSearchChange = (e) => {
@@ -80,217 +37,171 @@ function TemperatureTracker() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-    
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      console.log('API URL:', `${baseUrl}/api/temperatures`);
-      
-      const response = await fetch(`${baseUrl}/api/temperatures`, {
+      const response = await fetch('/api/temperatures', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(formData)
       });
-      
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        throw new Error(errorData.message || 'Failed to record temperature');
+        throw new Error('Failed to submit temperature');
       }
-      
-      setFormData(prev => ({
-        ...prev,
+
+      setFormData({
+        equipmentType: 'Ice Cream Machine',
         machineId: '',
-        temperature: '',
-        hopper: 'A'
-      }));
+        hopper: 'A',
+        temperature: ''
+      });
       setSuccess('Temperature recorded successfully!');
       fetchTemperatures();
     } catch (error) {
-      console.error('Error submitting temperature:', error);
-      setError('Failed to connect to server: ' + error.message);
+      setError(error.message);
     }
   };
 
-  const fetchTemperatures = useCallback(async () => {
+  const fetchTemperatures = async () => {
     try {
       const queryParams = new URLSearchParams(searchParams);
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      console.log('API URL:', `${baseUrl}/api/temperatures?${queryParams}`);
-      
-      const response = await fetch(`${baseUrl}/api/temperatures?${queryParams}`, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        throw new Error(errorData.message || 'Failed to fetch temperatures');
-      }
-      
+      const response = await fetch(`/api/temperatures?${queryParams}`);
       const data = await response.json();
       setTemperatures(data);
     } catch (error) {
-      console.error('Error fetching temperatures:', error);
-      setError('Failed to fetch temperature records: ' + error.message);
-    }
-  }, [searchParams]);
-
-  const handleSearch = async () => {
-    try {
-      setLoading(true);
-      await fetchTemperatures();
-    } catch (error) {
-      setError('Failed to search temperature records: ' + error.message);
-    } finally {
-      setLoading(false);
+      setError('Failed to fetch temperatures');
     }
   };
 
   useEffect(() => {
     fetchTemperatures();
-  }, [fetchTemperatures]);
-
-  const downloadExcel = () => {
-    const excelData = temperatures.map(record => ({
-      'Date': new Date(record.date).toLocaleString(),
-      'Equipment Type': record.equipmentType,
-      'Machine ID': record.machineId,
-      'Hopper': record.hopper,
-      'Temperature (°F)': record.temperature
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Temperature Records");
-    XLSX.writeFile(wb, `temperature_records_${new Date().toISOString().split('T')[0]}.xlsx`);
-  };
+  }, [searchParams]);
 
   return (
-    <>
-      <h1 className="dashboard-title">Temperature Tracking</h1>
-      <div className="form-container">
-        <h2 className="form-title">Add New Temperature Record</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Equipment Type</label>
-            <select
-              className="form-select"
-              value={formData.equipmentType}
-              onChange={(e) => setFormData({ ...formData, equipmentType: e.target.value })}
-              required
-            >
-              <option value="">Select Equipment Type</option>
-              <option value="Ice Cream Machine">Ice Cream Machine</option>
-              <option value="Walking Refrigerator">Walking Refrigerator</option>
-              <option value="Walking Freezer">Walking Freezer</option>
-              <option value="Chill Bar">Chill Bar</option>
-              <option value="Cake Display Freezer">Cake Display Freezer</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Machine ID</label>
-            <input
-              type="text"
-              className="form-input"
-              value={formData.machineId}
-              onChange={(e) => setFormData({ ...formData, machineId: e.target.value })}
-              required
-            />
-          </div>
-          {formData.equipmentType === 'Ice Cream Machine' && (
+    <div className="App">
+      <header>
+        <h1>Temperature Tracking</h1>
+      </header>
+
+      <main>
+        <section className="form-section">
+          <h2>Add New Temperature Record</h2>
+          {error && <div className="error">{error}</div>}
+          {success && <div className="success">{success}</div>}
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Hopper</label>
+              <label>Equipment Type</label>
               <select
-                className="form-select"
-                value={formData.hopper}
-                onChange={(e) => setFormData({ ...formData, hopper: e.target.value })}
+                name="equipmentType"
+                value={formData.equipmentType}
+                onChange={handleInputChange}
                 required
               >
-                <option value="">Select Hopper</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-                <option value="6">6</option>
-                <option value="7">7</option>
-                <option value="8">8</option>
+                <option value="Ice Cream Machine">Ice Cream Machine</option>
+                <option value="Walking Refrigerator">Walking Refrigerator</option>
+                <option value="Walking Freezer">Walking Freezer</option>
+                <option value="Chill Bar">Chill Bar</option>
+                <option value="Cake Display Freezer">Cake Display Freezer</option>
               </select>
             </div>
-          )}
-          <div className="form-group">
-            <label className="form-label">Temperature (°F)</label>
-            <input
-              type="number"
-              step="0.1"
-              className="form-input"
-              value={formData.temperature}
-              onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
-              required
-            />
-          </div>
-          <button type="submit" className="submit-button">
-            Submit
-          </button>
-        </form>
-      </div>
 
-      <div className="search-section">
-        <h2 className="search-title">Search Records</h2>
-        <div className="search-filters">
-          <div className="form-group">
-            <label className="form-label">Equipment Type</label>
-            <select
-              className="form-select"
-              value={searchParams.equipmentType}
-              onChange={(e) => setSearchParams({ ...searchParams, equipmentType: e.target.value })}
-            >
-              <option value="">All Types</option>
-              <option value="Ice Cream Machine">Ice Cream Machine</option>
-              <option value="Walking Refrigerator">Walking Refrigerator</option>
-              <option value="Walking Freezer">Walking Freezer</option>
-              <option value="Chill Bar">Chill Bar</option>
-              <option value="Cake Display Freezer">Cake Display Freezer</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Machine ID</label>
-            <input
-              type="text"
-              className="form-input"
-              value={searchParams.machineId}
-              onChange={(e) => setSearchParams({ ...searchParams, machineId: e.target.value })}
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Date Range</label>
-            <input
-              type="date"
-              className="form-input"
-              value={searchParams.startDate}
-              onChange={(e) => setSearchParams({ ...searchParams, startDate: e.target.value })}
-            />
-          </div>
-        </div>
-        <button onClick={handleSearch} className="submit-button">
-          Search
-        </button>
-      </div>
+            <div className="form-group">
+              <label>Machine ID</label>
+              <input
+                type="text"
+                name="machineId"
+                value={formData.machineId}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
 
-      <div className="results-section">
-        <h2 className="results-title">Temperature Records</h2>
-        {loading ? (
-          <div className="loading">Loading...</div>
-        ) : error ? (
-          <div className="error-message">{error}</div>
-        ) : (
-          <table className="temperature-table">
+            {formData.equipmentType === 'Ice Cream Machine' && (
+              <div className="form-group">
+                <label>Hopper</label>
+                <select
+                  name="hopper"
+                  value={formData.hopper}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                </select>
+              </div>
+            )}
+
+            <div className="form-group">
+              <label>Temperature (°F)</label>
+              <input
+                type="number"
+                name="temperature"
+                value={formData.temperature}
+                onChange={handleInputChange}
+                step="0.1"
+                required
+              />
+            </div>
+
+            <button type="submit">Submit</button>
+          </form>
+        </section>
+
+        <section className="search-section">
+          <h2>Search Records</h2>
+          <div className="search-filters">
+            <div className="form-group">
+              <label>Equipment Type</label>
+              <select
+                name="equipmentType"
+                value={searchParams.equipmentType}
+                onChange={handleSearchChange}
+              >
+                <option value="">All Types</option>
+                <option value="Ice Cream Machine">Ice Cream Machine</option>
+                <option value="Walking Refrigerator">Walking Refrigerator</option>
+                <option value="Walking Freezer">Walking Freezer</option>
+                <option value="Chill Bar">Chill Bar</option>
+                <option value="Cake Display Freezer">Cake Display Freezer</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Machine ID</label>
+              <input
+                type="text"
+                name="machineId"
+                value={searchParams.machineId}
+                onChange={handleSearchChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Start Date</label>
+              <input
+                type="date"
+                name="startDate"
+                value={searchParams.startDate}
+                onChange={handleSearchChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>End Date</label>
+              <input
+                type="date"
+                name="endDate"
+                value={searchParams.endDate}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="results-section">
+          <h2>Temperature Records</h2>
+          <table>
             <thead>
               <tr>
                 <th>Date</th>
@@ -298,7 +209,6 @@ function TemperatureTracker() {
                 <th>Machine ID</th>
                 <th>Hopper</th>
                 <th>Temperature (°F)</th>
-                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -309,45 +219,13 @@ function TemperatureTracker() {
                   <td>{record.machineId}</td>
                   <td>{record.hopper || '-'}</td>
                   <td>{record.temperature}</td>
-                  <td>
-                    <span className={`status-indicator ${
-                      record.temperature < 0
-                        ? 'status-error'
-                        : record.temperature > 10
-                        ? 'status-warning'
-                        : 'status-normal'
-                    }`}>
-                      {record.temperature < 0
-                        ? 'Too Cold'
-                        : record.temperature > 10
-                        ? 'Too Warm'
-                        : 'Normal'}
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-      </div>
-    </>
-  );
-}
-
-function App() {
-  return (
-    <Router>
-      <div className="App">
-        <Navigation />
-        <main className="container">
-          <Routes>
-            <Route path="/" element={<Navigate to="/temperatures" replace />} />
-            <Route path="/temperatures" element={<TemperatureTracker />} />
-            <Route path="/tips" element={<TipTracker />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+        </section>
+      </main>
+    </div>
   );
 }
 
