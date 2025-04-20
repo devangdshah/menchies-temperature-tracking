@@ -281,6 +281,30 @@ app.get('/api/out-of-stock', authenticateToken, async (req, res) => {
   }
 });
 
+// Password reset route
+app.post('/api/stores/reset-password', async (req, res) => {
+  try {
+    const { username, newPassword } = req.body;
+    
+    // Find store
+    const store = await Store.findOne({ username });
+    if (!store) {
+      return res.status(400).json({ message: 'Store not found' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password
+    store.password = hashedPassword;
+    await store.save();
+    
+    res.json({ message: 'Password reset successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
