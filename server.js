@@ -86,6 +86,17 @@ const tipSchema = new mongoose.Schema({
 
 const Tip = mongoose.model('Tip', tipSchema);
 
+// Out of Stock Schema
+const outOfStockSchema = new mongoose.Schema({
+  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
+  date: { type: Date, default: Date.now },
+  itemName: { type: String, required: true },
+  quantity: { type: Number, required: true },
+  notes: { type: String }
+});
+
+const OutOfStock = mongoose.model('OutOfStock', outOfStockSchema);
+
 // Authentication middleware
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -229,6 +240,42 @@ app.get('/api/tips', authenticateToken, async (req, res) => {
 
     const tips = await Tip.find(query).sort({ date: -1 });
     res.json(tips);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Out of Stock routes
+app.post('/api/out-of-stock', authenticateToken, async (req, res) => {
+  try {
+    const { itemName, quantity, notes } = req.body;
+    const newItem = new OutOfStock({
+      storeId: req.store.id,
+      itemName,
+      quantity,
+      notes
+    });
+    await newItem.save();
+    res.status(201).json(newItem);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+});
+
+app.get('/api/out-of-stock', authenticateToken, async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    let query = { storeId: req.store.id };
+    
+    if (startDate && endDate) {
+      query.date = {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      };
+    }
+
+    const items = await OutOfStock.find(query).sort({ date: -1 });
+    res.json(items);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } f
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
 import Tips from './components/Tips';
+import OutOfStock from './components/OutOfStock';
 import './App.css';
 
 function Navigation({ store, onLogout }) {
@@ -25,6 +26,12 @@ function Navigation({ store, onLogout }) {
           className={location.pathname.includes('tips') ? 'active' : ''}
         >
           Tips Tracking
+        </Link>
+        <Link 
+          to="/dashboard/out-of-stock" 
+          className={location.pathname.includes('out-of-stock') ? 'active' : ''}
+        >
+          Out of Stock
         </Link>
       </div>
       <div className="nav-actions">
@@ -367,6 +374,16 @@ function App() {
             element={
               store ? (
                 <Tips store={store} onLogout={handleLogout} />
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+          <Route
+            path="/dashboard/out-of-stock"
+            element={
+              store ? (
+                <OutOfStock store={store} onLogout={handleLogout} />
               ) : (
                 <Navigate to="/" replace />
               )
