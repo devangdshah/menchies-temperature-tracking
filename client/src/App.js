@@ -1,9 +1,38 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
 import Tips from './components/Tips';
 import './App.css';
+
+function Navigation({ store, onLogout }) {
+  const location = useLocation();
+  
+  return (
+    <nav className="main-nav">
+      <div className="nav-brand">
+        <h1>{store.name}</h1>
+      </div>
+      <div className="nav-links">
+        <Link 
+          to="/dashboard/temperatures" 
+          className={location.pathname.includes('temperatures') ? 'active' : ''}
+        >
+          Temperature Tracking
+        </Link>
+        <Link 
+          to="/dashboard/tips" 
+          className={location.pathname.includes('tips') ? 'active' : ''}
+        >
+          Tips Tracking
+        </Link>
+      </div>
+      <div className="nav-actions">
+        <button onClick={onLogout} className="logout-button">Logout</button>
+      </div>
+    </nav>
+  );
+}
 
 function Dashboard({ store, onLogout }) {
   const [temperatures, setTemperatures] = useState([]);
@@ -129,13 +158,7 @@ function Dashboard({ store, onLogout }) {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <div className="header-content">
-          <h1>{store.name} - Temperature & Tips Tracker</h1>
-          <button onClick={onLogout} className="logout-button">Logout</button>
-        </div>
-      </header>
-      
+      <Navigation store={store} onLogout={onLogout} />
       <main>
         <section className="input-section">
           <h2>Record New Temperature</h2>
@@ -290,8 +313,6 @@ function Dashboard({ store, onLogout }) {
             </tbody>
           </table>
         </section>
-
-        <Tips />
       </main>
     </div>
   );
@@ -324,17 +345,27 @@ function App() {
           path="/"
           element={
             store ? (
-              <Navigate to="/dashboard" replace />
+              <Navigate to="/dashboard/temperatures" replace />
             ) : (
               <Login onLogin={handleLogin} />
             )
           }
         />
         <Route
-          path="/dashboard"
+          path="/dashboard/temperatures"
           element={
             store ? (
               <Dashboard store={store} onLogout={handleLogout} />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
+        <Route
+          path="/dashboard/tips"
+          element={
+            store ? (
+              <Tips store={store} onLogout={handleLogout} />
             ) : (
               <Navigate to="/" replace />
             )
