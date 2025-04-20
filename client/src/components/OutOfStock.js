@@ -70,7 +70,11 @@ const OutOfStock = () => {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          itemName: formData.name,
+          quantity: 1, // Default quantity
+          notes: formData.comment
+        })
       });
 
       console.log('Submit response status:', response.status);
@@ -166,7 +170,8 @@ const OutOfStock = () => {
                 <tr>
                   <th>Date</th>
                   <th>Item Name</th>
-                  <th>Comment</th>
+                  <th>Quantity</th>
+                  <th>Notes</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -174,8 +179,9 @@ const OutOfStock = () => {
                 {items.map(item => (
                   <tr key={item._id}>
                     <td>{new Date(item.date).toLocaleString()}</td>
-                    <td>{item.name}</td>
-                    <td>{item.comment}</td>
+                    <td>{item.itemName}</td>
+                    <td>{item.quantity}</td>
+                    <td>{item.notes}</td>
                     <td>
                       <button 
                         onClick={() => handleRemoveItem(item._id)}
