@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, us
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
 import TipTracker from './components/Tips';
-import OutOfStock from './components/OutOfStock';
 import './App.css';
 
 function Navigation() {
@@ -36,12 +35,6 @@ function Navigation() {
         >
           Tips
         </Link>
-        <Link 
-          to="/dashboard/out-of-stock" 
-          className={location.pathname === '/dashboard/out-of-stock' ? 'active' : ''}
-        >
-          Out of Stock
-        </Link>
       </div>
       <button onClick={handleLogout} className="logout-btn">Logout</button>
     </nav>
@@ -52,7 +45,6 @@ function Dashboard() {
   const location = useLocation();
   const isTemperaturesPage = location.pathname.includes('temperatures');
   const isTipsPage = location.pathname.includes('tips');
-  const isOutOfStockPage = location.pathname.includes('out-of-stock');
 
   return (
     <div className="dashboard-container">
@@ -60,7 +52,6 @@ function Dashboard() {
       <main className="container">
         {isTemperaturesPage && <TemperatureTracker />}
         {isTipsPage && <TipTracker />}
-        {isOutOfStockPage && <OutOfStock />}
       </main>
     </div>
   );
@@ -393,7 +384,6 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="temperatures" element={<TemperatureTracker />} />
             <Route path="tips" element={<TipTracker />} />
-            <Route path="out-of-stock" element={<OutOfStock />} />
             <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
           </Route>
           <Route path="/" element={<Navigate to="/login" replace />} />
