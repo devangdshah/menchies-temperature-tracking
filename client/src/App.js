@@ -52,6 +52,7 @@ function Dashboard() {
   const location = useLocation();
   const isTemperaturesPage = location.pathname.includes('temperatures');
   const isTipsPage = location.pathname.includes('tips');
+  const isOutOfStockPage = location.pathname.includes('out-of-stock');
 
   return (
     <div className="dashboard-container">
@@ -59,6 +60,7 @@ function Dashboard() {
       <main className="container">
         {isTemperaturesPage && <TemperatureTracker />}
         {isTipsPage && <TipTracker />}
+        {isOutOfStockPage && <OutOfStock />}
       </main>
     </div>
   );
