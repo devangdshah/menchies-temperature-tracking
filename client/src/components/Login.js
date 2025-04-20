@@ -39,21 +39,25 @@ function Login({ onLogin }) {
         body: JSON.stringify(formData),
       });
 
-      console.log('Login response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
       const data = await response.json();
       console.log('Login response data:', data);
 
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('store', JSON.stringify(data.store));
-        onLogin(data.store);
-        navigate('/dashboard/temperatures');
-      } else {
-        setError(data.message || 'Login failed. Please check your credentials.');
-      }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('store', JSON.stringify(data.store));
+      onLogin(data.store);
+      navigate('/dashboard/temperatures');
     } catch (error) {
       console.error('Login error details:', error);
-      setError(`Failed to connect to server. Please try again later. (${error.message})`);
+      if (error.message.includes('Failed to fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection and try again.');
+      } else {
+        setError(error.message || 'An error occurred during login. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
