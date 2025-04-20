@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { FiLogOut } from 'react-icons/fi';
-import Login from './components/Login';
 import TipTracker from './components/Tips';
 import './App.css';
 
@@ -11,51 +10,31 @@ function Navigation() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('store');
-    navigate('/login');
+    navigate('/');
   };
 
   return (
     <nav className="main-nav">
       <div className="nav-brand">
         <span className="store-name">
-          Welcome, {JSON.parse(localStorage.getItem('store'))?.name || 'Store'}
+          Welcome to Menchie's Temperature Tracking
         </span>
       </div>
       <div className="nav-links">
         <Link 
-          to="/dashboard/temperatures" 
-          className={location.pathname === '/dashboard/temperatures' ? 'active' : ''}
+          to="/temperatures" 
+          className={location.pathname === '/temperatures' ? 'active' : ''}
         >
           Temperatures
         </Link>
         <Link 
-          to="/dashboard/tips" 
-          className={location.pathname === '/dashboard/tips' ? 'active' : ''}
+          to="/tips" 
+          className={location.pathname === '/tips' ? 'active' : ''}
         >
           Tips
         </Link>
-        <button onClick={handleLogout} className="logout-btn" title="Logout">
-          <FiLogOut size={24} />
-        </button>
       </div>
     </nav>
-  );
-}
-
-function Dashboard() {
-  return (
-    <div className="dashboard-container">
-      <Navigation />
-      <main className="container">
-        <Routes>
-          <Route path="temperatures" element={<TemperatureTracker />} />
-          <Route path="tips" element={<TipTracker />} />
-          <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
-        </Routes>
-      </main>
-    </div>
   );
 }
 
@@ -357,39 +336,17 @@ function TemperatureTracker() {
 }
 
 function App() {
-  const [store, setStore] = useState(null);
-
-  useEffect(() => {
-    const storedStore = localStorage.getItem('store');
-    const token = localStorage.getItem('token');
-    if (storedStore && token) {
-      setStore(JSON.parse(storedStore));
-    }
-  }, []);
-
-  const handleLogin = (storeData) => {
-    setStore(storeData);
-    localStorage.setItem('store', JSON.stringify(storeData));
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('store');
-    setStore(null);
-  };
-
   return (
     <Router>
       <div className="App">
-        <Routes>
-          <Route path="/login" element={<Login onLogin={handleLogin} />} />
-          <Route path="/dashboard" element={<Dashboard />}>
-            <Route path="temperatures" element={<TemperatureTracker />} />
-            <Route path="tips" element={<TipTracker />} />
-            <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
-          </Route>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <Navigation />
+        <main className="container">
+          <Routes>
+            <Route path="/" element={<Navigate to="/temperatures" replace />} />
+            <Route path="/temperatures" element={<TemperatureTracker />} />
+            <Route path="/tips" element={<TipTracker />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );

@@ -1,18 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: '*', // Allow all origins in development
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
+  allowedHeaders: ['Content-Type', 'Accept'],
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
@@ -27,8 +24,7 @@ app.options('*', cors(corsOptions));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
@@ -53,19 +49,8 @@ const connectWithRetry = () => {
 
 connectWithRetry();
 
-// Store Schema
-const storeSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  location: { type: String, required: true },
-  username: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
-});
-
-const Store = mongoose.model('Store', storeSchema);
-
 // Temperature Schema
 const temperatureSchema = new mongoose.Schema({
-  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
   equipmentType: { 
     type: String, 
     enum: ['Ice Cream Machine', 'Walking Refrigerator', 'Walking Freezer', 'Chill Bar', 'Cake Display Freezer'],
@@ -83,7 +68,6 @@ const Temperature = mongoose.model('Temperature', temperatureSchema);
 
 // Tips Schema
 const tipSchema = new mongoose.Schema({
-  storeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Store', required: true },
   date: { type: Date, default: Date.now },
   amount: { type: Number, required: true },
   notes: { type: String }
@@ -91,85 +75,11 @@ const tipSchema = new mongoose.Schema({
 
 const Tip = mongoose.model('Tip', tipSchema);
 
-// Authentication middleware
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.status(401).json({ message: 'Access denied' });
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, store) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
-    req.store = store;
-    next();
-  });
-};
-
-// Routes
-// Store registration
-app.post('/api/stores/register', async (req, res) => {
-  try {
-    const { name, location, username, password } = req.body;
-    
-    // Check if username exists
-    const existingStore = await Store.findOne({ username });
-    if (existingStore) {
-      return res.status(400).json({ message: 'Username already exists' });
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const store = new Store({
-      name,
-      location,
-      username,
-      password: hashedPassword
-    });
-
-    await store.save();
-    res.status(201).json({ message: 'Store registered successfully' });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Store login
-app.post('/api/stores/login', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    
-    // Find store
-    const store = await Store.findOne({ username });
-    if (!store) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Check password
-    const validPassword = await bcrypt.compare(password, store.password);
-    if (!validPassword) {
-      return res.status(400).json({ message: 'Invalid credentials' });
-    }
-
-    // Generate token
-    const token = jwt.sign(
-      { id: store._id, name: store.name },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    res.json({ token, store: { id: store._id, name: store.name, location: store.location } });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
 // Temperature routes
-app.post('/api/temperatures', authenticateToken, async (req, res) => {
+app.post('/api/temperatures', async (req, res) => {
   try {
     const { equipmentType, machineId, hopper, temperature } = req.body;
     const newTemperature = new Temperature({
-      storeId: req.store.id,
       equipmentType,
       machineId,
       hopper,
@@ -182,10 +92,10 @@ app.post('/api/temperatures', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/temperatures', authenticateToken, async (req, res) => {
+app.get('/api/temperatures', async (req, res) => {
   try {
     const { equipmentType, machineId, hopper, startDate, endDate } = req.query;
-    let query = { storeId: req.store.id };
+    let query = {};
     
     if (equipmentType) query.equipmentType = equipmentType;
     if (machineId) query.machineId = machineId;
@@ -205,11 +115,10 @@ app.get('/api/temperatures', authenticateToken, async (req, res) => {
 });
 
 // Tips routes
-app.post('/api/tips', authenticateToken, async (req, res) => {
+app.post('/api/tips', async (req, res) => {
   try {
     const { amount, notes } = req.body;
     const newTip = new Tip({
-      storeId: req.store.id,
       amount,
       notes
     });
@@ -220,10 +129,10 @@ app.post('/api/tips', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/tips', authenticateToken, async (req, res) => {
+app.get('/api/tips', async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    let query = { storeId: req.store.id };
+    let query = {};
     
     if (startDate && endDate) {
       query.date = {
@@ -236,30 +145,6 @@ app.get('/api/tips', authenticateToken, async (req, res) => {
     res.json(tips);
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
-});
-
-// Password reset route
-app.post('/api/stores/reset-password', async (req, res) => {
-  try {
-    const { username, newPassword } = req.body;
-    
-    // Find store
-    const store = await Store.findOne({ username });
-    if (!store) {
-      return res.status(400).json({ message: 'Store not found' });
-    }
-
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    // Update password
-    store.password = hashedPassword;
-    await store.save();
-    
-    res.json({ message: 'Password reset successfully' });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
   }
 });
 
