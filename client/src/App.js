@@ -4,7 +4,6 @@ import * as XLSX from 'xlsx';
 import { FiLogOut } from 'react-icons/fi';
 import Login from './components/Login';
 import TipTracker from './components/Tips';
-import OutOfStock from './components/OutOfStock';
 import './App.css';
 
 function Navigation() {
@@ -37,12 +36,6 @@ function Navigation() {
         >
           Tips
         </Link>
-        <Link 
-          to="/dashboard/out-of-stock" 
-          className={location.pathname === '/dashboard/out-of-stock' ? 'active' : ''}
-        >
-          Out of Stock
-        </Link>
         <button onClick={handleLogout} className="logout-btn" title="Logout">
           <FiLogOut size={24} />
         </button>
@@ -52,16 +45,15 @@ function Navigation() {
 }
 
 function Dashboard() {
-  const location = useLocation();
-  const isTemperaturesPage = location.pathname.includes('temperatures');
-  const isTipsPage = location.pathname.includes('tips');
-
   return (
     <div className="dashboard-container">
       <Navigation />
       <main className="container">
-        {isTemperaturesPage && <TemperatureTracker />}
-        {isTipsPage && <TipTracker />}
+        <Routes>
+          <Route path="temperatures" element={<TemperatureTracker />} />
+          <Route path="tips" element={<TipTracker />} />
+          <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
+        </Routes>
       </main>
     </div>
   );
@@ -394,7 +386,6 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />}>
             <Route path="temperatures" element={<TemperatureTracker />} />
             <Route path="tips" element={<TipTracker />} />
-            <Route path="out-of-stock" element={<OutOfStock />} />
             <Route index element={<Navigate to="/dashboard/temperatures" replace />} />
           </Route>
           <Route path="/" element={<Navigate to="/login" replace />} />
