@@ -1,47 +1,65 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation, useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import Login from './components/Login';
 import Tips from './components/Tips';
 import OutOfStock from './components/OutOfStock';
 import './App.css';
 
-function Navigation({ store, onLogout }) {
+function Navigation() {
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <nav className="main-nav">
-      <div className="nav-brand">
-        <h1>{store.name}</h1>
-      </div>
-      <div className="nav-links">
-        <Link 
-          to="/dashboard/temperatures" 
-          className={location.pathname.includes('temperatures') ? 'active' : ''}
-        >
-          Temperature Tracking
+      <div className="nav-container">
+        <Link to="/dashboard/temperatures" className="store-name">
+          Menchie's Temperature Tracking
         </Link>
-        <Link 
-          to="/dashboard/tips" 
-          className={location.pathname.includes('tips') ? 'active' : ''}
-        >
-          Tips Tracking
-        </Link>
-        <Link 
-          to="/dashboard/out-of-stock" 
-          className={location.pathname.includes('out-of-stock') ? 'active' : ''}
-        >
-          Out of Stock
-        </Link>
-      </div>
-      <div className="nav-actions">
-        <button onClick={onLogout} className="logout-button">Logout</button>
+        <div className="nav-links">
+          <Link
+            to="/dashboard/temperatures"
+            className={`nav-link ${location.pathname.includes('temperatures') ? 'active' : ''}`}
+          >
+            Temperatures
+          </Link>
+          <Link
+            to="/dashboard/tips"
+            className={`nav-link ${location.pathname.includes('tips') ? 'active' : ''}`}
+          >
+            Tips
+          </Link>
+          <button onClick={handleLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
   );
 }
 
-function Dashboard({ store, onLogout }) {
+function Dashboard() {
+  const location = useLocation();
+  const isTemperaturesPage = location.pathname.includes('temperatures');
+  const isTipsPage = location.pathname.includes('tips');
+
+  return (
+    <div className="dashboard-container">
+      <Navigation />
+      <main className="container">
+        {isTemperaturesPage && <TemperatureTracker />}
+        {isTipsPage && <TipTracker />}
+      </main>
+    </div>
+  );
+}
+
+function TemperatureTracker() {
   const [temperatures, setTemperatures] = useState([]);
   const [formData, setFormData] = useState({
     equipmentType: 'Ice Cream Machine',
@@ -58,6 +76,7 @@ function Dashboard({ store, onLogout }) {
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -164,139 +183,125 @@ function Dashboard({ store, onLogout }) {
   };
 
   return (
-    <div className="App">
-      <main>
-        <section className="input-section">
-          <h2>Record New Temperature</h2>
-          {error && <div className="error-message">{error}</div>}
-          {success && <div className="success-message">{success}</div>}
-          <form onSubmit={handleSubmit}>
-            <div>
-              <label>Equipment Type:</label>
+    <>
+      <h1 className="dashboard-title">Temperature Tracking</h1>
+      <div className="form-container">
+        <h2 className="form-title">Add New Temperature Record</h2>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">Equipment Type</label>
+            <select
+              className="form-select"
+              value={formData.equipmentType}
+              onChange={(e) => setFormData({ ...formData, equipmentType: e.target.value })}
+              required
+            >
+              <option value="">Select Equipment Type</option>
+              <option value="Ice Cream Machine">Ice Cream Machine</option>
+              <option value="Walking Refrigerator">Walking Refrigerator</option>
+              <option value="Walking Freezer">Walking Freezer</option>
+              <option value="Chill Bar">Chill Bar</option>
+              <option value="Cake Display Freezer">Cake Display Freezer</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Machine ID</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.machineId}
+              onChange={(e) => setFormData({ ...formData, machineId: e.target.value })}
+              required
+            />
+          </div>
+          {formData.equipmentType === 'Ice Cream Machine' && (
+            <div className="form-group">
+              <label className="form-label">Hopper</label>
               <select
-                name="equipmentType"
-                value={formData.equipmentType}
-                onChange={handleInputChange}
+                className="form-select"
+                value={formData.hopper}
+                onChange={(e) => setFormData({ ...formData, hopper: e.target.value })}
                 required
               >
-                <option value="Ice Cream Machine">Ice Cream Machine</option>
-                <option value="Walking Refrigerator">Walking Refrigerator</option>
-                <option value="Walking Freezer">Walking Freezer</option>
-                <option value="Chill Bar">Chill Bar</option>
-                <option value="Cake Display Freezer">Cake Display Freezer</option>
+                <option value="">Select Hopper</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
               </select>
             </div>
-            <div>
-              <label>Machine ID:</label>
-              <input
-                type="number"
-                name="machineId"
-                value={formData.machineId}
-                onChange={handleInputChange}
-                min="1"
-                required
-              />
-            </div>
-            {formData.equipmentType === 'Ice Cream Machine' && (
-              <div>
-                <label>Hopper:</label>
-                <select
-                  name="hopper"
-                  value={formData.hopper}
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                </select>
-              </div>
-            )}
-            <div>
-              <label>Temperature (°F):</label>
-              <input
-                type="number"
-                name="temperature"
-                value={formData.temperature}
-                onChange={handleInputChange}
-                step="0.1"
-                required
-              />
-            </div>
-            <button type="submit">Submit</button>
-          </form>
-        </section>
-
-        <section className="search-section">
-          <h2>Search Temperatures</h2>
-          <div className="search-filters">
-            <div>
-              <label>Equipment Type:</label>
-              <select
-                name="equipmentType"
-                value={searchParams.equipmentType}
-                onChange={handleSearchChange}
-              >
-                <option value="">All</option>
-                <option value="Ice Cream Machine">Ice Cream Machine</option>
-                <option value="Walking Refrigerator">Walking Refrigerator</option>
-                <option value="Walking Freezer">Walking Freezer</option>
-                <option value="Chill Bar">Chill Bar</option>
-                <option value="Cake Display Freezer">Cake Display Freezer</option>
-              </select>
-            </div>
-            <div>
-              <label>Machine ID:</label>
-              <input
-                type="number"
-                name="machineId"
-                value={searchParams.machineId}
-                onChange={handleSearchChange}
-                min="1"
-              />
-            </div>
-            {searchParams.equipmentType === 'Ice Cream Machine' && (
-              <div>
-                <label>Hopper:</label>
-                <select
-                  name="hopper"
-                  value={searchParams.hopper}
-                  onChange={handleSearchChange}
-                >
-                  <option value="">All</option>
-                  <option value="A">A</option>
-                  <option value="B">B</option>
-                </select>
-              </div>
-            )}
-            <div>
-              <label>Start Date:</label>
-              <input
-                type="date"
-                name="startDate"
-                value={searchParams.startDate}
-                onChange={handleSearchChange}
-              />
-            </div>
-            <div>
-              <label>End Date:</label>
-              <input
-                type="date"
-                name="endDate"
-                value={searchParams.endDate}
-                onChange={handleSearchChange}
-              />
-            </div>
+          )}
+          <div className="form-group">
+            <label className="form-label">Temperature (°F)</label>
+            <input
+              type="number"
+              step="0.1"
+              className="form-input"
+              value={formData.temperature}
+              onChange={(e) => setFormData({ ...formData, temperature: e.target.value })}
+              required
+            />
           </div>
-        </section>
+          <button type="submit" className="submit-button">
+            Submit
+          </button>
+        </form>
+      </div>
 
-        <section className="results-section">
-          <div className="results-header">
-            <h2>Temperature Records</h2>
-            <button onClick={downloadExcel} className="download-button">
-              Download Excel
-            </button>
+      <div className="search-section">
+        <h2 className="search-title">Search Records</h2>
+        <div className="search-filters">
+          <div className="form-group">
+            <label className="form-label">Equipment Type</label>
+            <select
+              className="form-select"
+              value={searchParams.equipmentType}
+              onChange={(e) => setSearchParams({ ...searchParams, equipmentType: e.target.value })}
+            >
+              <option value="">All Types</option>
+              <option value="Ice Cream Machine">Ice Cream Machine</option>
+              <option value="Walking Refrigerator">Walking Refrigerator</option>
+              <option value="Walking Freezer">Walking Freezer</option>
+              <option value="Chill Bar">Chill Bar</option>
+              <option value="Cake Display Freezer">Cake Display Freezer</option>
+            </select>
           </div>
-          <table>
+          <div className="form-group">
+            <label className="form-label">Machine ID</label>
+            <input
+              type="text"
+              className="form-input"
+              value={searchParams.machineId}
+              onChange={(e) => setSearchParams({ ...searchParams, machineId: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Date Range</label>
+            <input
+              type="date"
+              className="form-input"
+              value={searchParams.startDate}
+              onChange={(e) => setSearchParams({ ...searchParams, startDate: e.target.value })}
+            />
+          </div>
+        </div>
+        <button onClick={handleSearch} className="submit-button">
+          Search
+        </button>
+      </div>
+
+      <div className="results-section">
+        <h2 className="results-title">Temperature Records</h2>
+        {loading ? (
+          <div className="loading">Loading...</div>
+        ) : error ? (
+          <div className="error-message">{error}</div>
+        ) : (
+          <table className="temperature-table">
             <thead>
               <tr>
                 <th>Date</th>
@@ -304,22 +309,86 @@ function Dashboard({ store, onLogout }) {
                 <th>Machine ID</th>
                 <th>Hopper</th>
                 <th>Temperature (°F)</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {temperatures.map((record) => (
                 <tr key={record._id}>
-                  <td>{new Date(record.date).toLocaleString()}</td>
+                  <td>{new Date(record.timestamp).toLocaleString()}</td>
                   <td>{record.equipmentType}</td>
                   <td>{record.machineId}</td>
                   <td>{record.hopper || '-'}</td>
                   <td>{record.temperature}</td>
+                  <td>
+                    <span className={`status-indicator ${
+                      record.temperature < 0
+                        ? 'status-error'
+                        : record.temperature > 10
+                        ? 'status-warning'
+                        : 'status-normal'
+                    }`}>
+                      {record.temperature < 0
+                        ? 'Too Cold'
+                        : record.temperature > 10
+                        ? 'Too Warm'
+                        : 'Normal'}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </section>
-      </main>
+        )}
+      </div>
+    </>
+  );
+}
+
+function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setError('');
+    
+    // This is a placeholder for the login logic.
+    // In a real application, you would send the username and password to the server
+    // and handle the response.
+    console.log('Login attempt:', { username, password });
+  };
+
+  return (
+    <div className="login-container">
+      <h1 className="login-title">Login</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label className="form-label">Username</label>
+          <input
+            type="text"
+            className="form-input"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Password</label>
+          <input
+            type="password"
+            className="form-input"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        {error && <div className="error-message">{error}</div>}
+        <button type="submit" className="submit-button">
+          Login
+        </button>
+      </form>
     </div>
   );
 }
@@ -347,7 +416,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {store && <Navigation store={store} onLogout={handleLogout} />}
+        {store && <Navigation />}
         <Routes>
           <Route
             path="/"
@@ -355,7 +424,7 @@ function App() {
               store ? (
                 <Navigate to="/dashboard/temperatures" replace />
               ) : (
-                <Login onLogin={handleLogin} />
+                <Login />
               )
             }
           />
@@ -363,7 +432,7 @@ function App() {
             path="/dashboard/temperatures"
             element={
               store ? (
-                <Dashboard store={store} onLogout={handleLogout} />
+                <TemperatureTracker />
               ) : (
                 <Navigate to="/" replace />
               )
