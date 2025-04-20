@@ -386,7 +386,6 @@ function App() {
   return (
     <Router>
       <div className="App">
-        {store && <Navigation />}
         <Routes>
           <Route path="/login" element={<Login onLogin={handleLogin} />} />
           <Route path="/dashboard" element={<Dashboard />}>
