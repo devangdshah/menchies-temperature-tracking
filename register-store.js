@@ -3,8 +3,8 @@ import fetch from 'node-fetch';
 async function registerStore(storeName, location, username, password) {
   try {
     const baseUrl = process.env.API_URL || 'http://localhost:5000';
-    console.log('Registering store with details:');
-    console.log('Name:', storeName);
+    console.log('\nRegistering new store with details:');
+    console.log('Store Name:', storeName);
     console.log('Location:', location);
     console.log('Username:', username);
     
@@ -22,25 +22,30 @@ async function registerStore(storeName, location, username, password) {
     });
 
     const data = await response.json();
-    console.log('Registration response:', data);
+    console.log('\nRegistration response:', data);
     
     if (response.ok) {
       console.log('\nStore registered successfully!');
-      console.log('You can now login with:');
+      console.log('\nYou can now login with:');
       console.log('Username:', username);
       console.log('Password:', password);
+      console.log('\nPlease save these credentials securely.');
     } else {
       console.log('\nRegistration failed:', data.message);
+      if (data.message === 'Username already exists') {
+        console.log('Please try a different username.');
+      }
     }
   } catch (error) {
-    console.error('Error registering store:', error.message);
+    console.error('\nError registering store:', error.message);
+    console.log('Please make sure the server is running and try again.');
   }
 }
 
-// Register the QueenAnne store
+// Register North Pointe store
 registerStore(
-  'QueenAnne',
-  'Seattle, WA, USA',
-  'QueenAnne',
-  'QueenAnne243'
+  'North Pointe',
+  'Lynnwood, WA, USA',
+  'northpointe',
+  'northpointe432'
 ); 
